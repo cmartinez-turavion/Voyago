@@ -1,0 +1,3 @@
+using Voyago.Models.Enums;
+namespace Voyago.Models.Entities;
+public sealed class FlightOffer { public int Id { get; set; } public FlightType FlightType { get; set; } public string Airline { get; set; } = string.Empty; public string OriginCity { get; set; } = string.Empty; public string OriginCode { get; set; } = string.Empty; public string DestinationCity { get; set; } = string.Empty; public string DestinationCode { get; set; } = string.Empty; public TimeSpan Duration { get; set; } public string Aircraft { get; set; } = string.Empty; public string CabinClass { get; set; } = string.Empty; public string Baggage { get; set; } = string.Empty; public decimal Price { get; set; } public bool CarbonOffsetIncluded { get; set; } public bool Published { get; set; } }
