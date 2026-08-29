@@ -1,0 +1,3 @@
+using Voyago.Models.Enums;
+namespace Voyago.Models.Entities;
+public sealed class Review { public int Id { get; set; } public string UserId { get; set; } = string.Empty; public int? DestinationId { get; set; } public int? TourPackageId { get; set; } public int Rating { get; set; } public string Title { get; set; } = string.Empty; public string Comment { get; set; } = string.Empty; public bool VerifiedBooking { get; set; } public ReviewModerationStatus ModerationStatus { get; set; } public DateTime CreatedAtUtc { get; set; } public ApplicationUser User { get; set; } = null!; public Destination? Destination { get; set; } public TourPackage? TourPackage { get; set; } }

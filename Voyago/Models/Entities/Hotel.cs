@@ -1,0 +1,2 @@
+namespace Voyago.Models.Entities;
+public sealed class Hotel { public int Id { get; set; } public int DestinationId { get; set; } public string Name { get; set; } = string.Empty; public string Description { get; set; } = string.Empty; public int Stars { get; set; } public decimal Rating { get; set; } public decimal PricePerNight { get; set; } public string ImageUrl { get; set; } = string.Empty; public bool Published { get; set; } public Destination Destination { get; set; } = null!; public ICollection<HotelRoomType> RoomTypes { get; set; } = new List<HotelRoomType>(); }
