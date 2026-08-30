@@ -2,28 +2,33 @@
 
 **Luxury Travel & VIP Concierge Platform**
 
-Voyago es un prototipo web de alta fidelidad para exploración y gestión futura de experiencias de viaje de lujo. La solución utiliza ASP.NET Core 8, Razor Pages, Entity Framework Core 8, SQLite y ASP.NET Core Identity, con una identidad visual **Luxury Warm Charcoal & Gold**.
+Voyago es un prototipo web de alta fidelidad orientado a la exploracion y gestion futura de experiencias de viaje de lujo. La solucion utiliza ASP.NET Core 8, Razor Pages, Entity Framework Core 8, SQLite y ASP.NET Core Identity, con una identidad visual **Luxury Warm Charcoal & Gold**.
 
 ## Estado del prototipo
 
 | Jornada | Alcance | Estado |
 |---|---|---|
-| Jornada 1 | Fundaciones técnicas, Identity, roles, autorización, SQLite y layout | Completada |
-| Jornada 2 | Modelo de dominio, configuración EF Core, seed demostrativo y servicios de consulta | Completada y validada |
-| Jornada 3 | Pendiente de definición e inicio | No iniciada |
+| Jornada 1 | Fundaciones tecnicas, Identity, roles, autorizacion, SQLite y layout | Completada |
+| Jornada 2 | Modelo de dominio, configuracion EF Core, seed demostrativo y servicios de consulta | Completada y validada |
+| Jornada 3 | Catalogo publico, busqueda, detalle de destinos, favoritos autenticados y regresion E2E | Completada y validada |
+| Jornada 4 | Pipeline CI/CD, publicacion de resultados y evidencias de pruebas | Pendiente |
 
-La Jornada 2 fue validada con:
+### Validacion al cierre de la Jornada 3
 
-- Restauración de paquetes exitosa.
-- Compilación exitosa de `Voyago` y `Voyago.Tests`.
-- Migraciones aplicadas correctamente.
+- Restauracion de paquetes exitosa.
+- Compilacion exitosa de `Voyago`, `Voyago.Tests` y `Voyago.E2E`.
+- Migraciones aplicadas correctamente en bases temporales de prueba.
 - Seed demostrativo idempotente.
-- 7 pruebas automatizadas aprobadas.
+- **37 pruebas xUnit aprobadas**.
+- **7 pruebas E2E con Playwright aprobadas**.
+- **44 pruebas automatizadas aprobadas en total**.
 - 0 pruebas con errores.
 - 0 pruebas omitidas.
-- Sin cambios pendientes en el modelo de Entity Framework Core.
+- SQLite temporal aislada para integracion y E2E.
+- Limpieza automatica de la base E2E y del servidor al finalizar.
+- Pipeline CI/CD pendiente para la jornada siguiente.
 
-## Stack tecnológico
+## Stack tecnologico
 
 - .NET 8.
 - ASP.NET Core 8.
@@ -34,29 +39,22 @@ La Jornada 2 fue validada con:
 - Entity Framework Core 8.
 - SQLite.
 - ASP.NET Core Identity.
-- Inyección de dependencias nativa.
+- Inyeccion de dependencias nativa.
 - Logging mediante `ILogger`.
-- xUnit para pruebas automatizadas.
+- xUnit para pruebas unitarias e integracion HTTP.
+- NUnit y Microsoft Playwright para pruebas E2E.
+- Chromium como navegador automatizado.
 
 ## Arquitectura del prototipo
 
-El prototipo utiliza un único proyecto web productivo para reducir complejidad. Las fronteras lógicas se mantienen mediante carpetas y responsabilidades diferenciadas:
+El prototipo utiliza un unico proyecto web productivo para reducir complejidad. Las fronteras logicas se mantienen mediante carpetas y responsabilidades diferenciadas:
 
-```text
-Presentación
-  Razor Pages, Areas, Controllers, ViewModels
+- **Presentacion:** Razor Pages, Areas, Controllers y ViewModels.
+- **Aplicacion:** servicios de consulta y casos de uso.
+- **Dominio:** entidades y enums.
+- **Infraestructura:** `ApplicationDbContext`, configuraciones EF Core, migraciones y seed.
 
-Aplicación
-  Servicios de consulta y casos de uso
-
-Dominio
-  Entidades y enums
-
-Infraestructura
-  ApplicationDbContext, configuraciones EF Core, migraciones y seed
-```
-
-El proyecto de pruebas es independiente y no forma parte del despliegue productivo.
+Los proyectos de pruebas son independientes y no forman parte del despliegue productivo.
 
 ## Estructura principal
 
@@ -71,12 +69,14 @@ Voyago.sln
 │   │   ├── Configurations/
 │   │   ├── Migrations/
 │   │   ├── Seed/
+│   │   │   └── E2ETestDataInitializer.cs
 │   │   └── ApplicationDbContext.cs
 │   ├── Models/
 │   │   ├── Entities/
 │   │   ├── Enums/
 │   │   └── ViewModels/
 │   ├── Pages/
+│   │   └── Destinations/
 │   ├── Services/
 │   │   └── Queries/
 │   ├── wwwroot/
@@ -87,9 +87,14 @@ Voyago.sln
 │   ├── appsettings.json
 │   └── Voyago.csproj
 ├── tests/
-│   └── Voyago.Tests/
+│   ├── Voyago.Tests/
+│   └── Voyago.E2E/
+├── scripts/
+│   ├── run-voyago-e2e.sh
+│   └── test-e2e.sh
 └── docs/
-    └── SDD.md
+    ├── SDD.md
+    └── jornada-3-cierre-tecnico.md
 ```
 
 ## Requisitos locales
@@ -97,7 +102,10 @@ Voyago.sln
 - .NET 8 SDK.
 - Herramienta `dotnet-ef` 8.x.
 - Git.
+- Git Bash para ejecutar los scripts `.sh` en Windows.
 - Visual Studio 2022, Visual Studio Code o equivalente.
+- Python o el lanzador `py`, utilizado para generar identificadores unicos en los scripts E2E.
+- Chromium instalado mediante Playwright.
 
 Verificar el SDK instalado:
 
@@ -105,21 +113,21 @@ Verificar el SDK instalado:
 dotnet --version
 ```
 
-Instalar `dotnet-ef` si no está disponible:
+Instalar `dotnet-ef` si no esta disponible:
 
 ```bash
 dotnet tool install --global dotnet-ef --version 8.*
 ```
 
-Actualizar una instalación existente:
+Actualizar una instalacion existente:
 
 ```bash
 dotnet tool update --global dotnet-ef --version 8.*
 ```
 
-## Configuración
+## Configuracion
 
-La conexión SQLite se encuentra en `Voyago/appsettings.json`:
+La conexion SQLite de desarrollo se encuentra en `Voyago/appsettings.json`:
 
 ```json
 {
@@ -129,25 +137,30 @@ La conexión SQLite se encuentra en `Voyago/appsettings.json`:
 }
 ```
 
-La base se crea en:
+La base local se crea en:
 
 ```text
 Voyago/Data/voyago.db
 ```
 
-Los archivos de SQLite están excluidos del repositorio:
+Los archivos SQLite locales y temporales deben estar excluidos del repositorio:
 
-```text
-Data/*.db
-Data/*.db-shm
-Data/*.db-wal
+```gitignore
+Voyago/Data/*.db
+Voyago/Data/*.db-shm
+Voyago/Data/*.db-wal
+.e2e-data/
+TestResults/
+playwright/.auth/
+**/playwright-report/
+**/playwright-traces/
 ```
 
-No deben almacenarse contraseñas, tokens, API keys ni credenciales en `appsettings.json`.
+No deben almacenarse contrasenas, tokens, API keys ni credenciales en `appsettings.json`.
 
 ## Restaurar y compilar
 
-Desde la raíz del repositorio:
+Desde la raiz del repositorio:
 
 ```bash
 dotnet restore Voyago.sln
@@ -193,36 +206,38 @@ Resultado esperado:
 No changes have been made to the model since the last migration.
 ```
 
-Las migraciones no se aplican automáticamente durante el arranque. En entornos distintos de desarrollo deben aplicarse mediante un proceso controlado.
+En desarrollo, la base debe prepararse de forma controlada. En los ambientes de pruebas, las migraciones se aplican sobre bases SQLite temporales y aisladas.
 
-## Ejecutar la aplicación
+## Ejecutar la aplicacion
 
 ```bash
 dotnet run --project Voyago/Voyago.csproj
 ```
 
-El perfil de desarrollo utiliza las direcciones configuradas en `launchSettings.json`. Visual Studio también puede iniciar el proyecto con el perfil `Voyago`.
+El perfil de desarrollo utiliza las direcciones configuradas en `launchSettings.json`. Visual Studio tambien puede iniciar el proyecto con el perfil `Voyago`.
 
-### Rutas base
+### Rutas disponibles
 
 ```text
-/                                 Inicio
-/Privacy                          Privacidad
-/Error                            Manejo básico de errores
-/Admin                            Área protegida
-/Identity/Account/Register        Registro
-/Identity/Account/Login           Inicio de sesión
-/Identity/Account/Logout          Cierre de sesión
-/api/v1/health                    Estado básico de la aplicación
+/                                  Inicio
+/Privacy                           Privacidad
+/Error                             Manejo basico de errores
+/Destinations                      Catalogo publico de destinos
+/Destinations/{id}                 Detalle de un destino publicado
+/Admin                             Area protegida
+/Identity/Account/Register         Registro
+/Identity/Account/Login            Inicio de sesion
+/Identity/Account/Logout           Cierre de sesion
+/api/v1/health                     Estado basico de la aplicacion
 ```
 
-Las páginas completas del catálogo todavía no están implementadas. Los enlaces correspondientes permanecen deshabilitados hasta una jornada posterior.
+El catalogo publico de destinos y el flujo autenticado de favoritos estan operativos. Las paginas completas de paquetes, hoteles, vuelos y reservas permanecen pendientes.
 
-## Identity, roles y autorización
+## Identity, roles y autorizacion
 
 `ApplicationDbContext` hereda de:
 
-```csharp
+```text
 IdentityDbContext<ApplicationUser>
 ```
 
@@ -240,54 +255,53 @@ Identity y las entidades del dominio utilizan la misma base SQLite.
 - `Traveler`.
 - `Administrator`.
 
-Los roles se crean mediante un inicializador idempotente durante el arranque.
+Los roles se crean mediante un inicializador idempotente.
 
-### Política administrativa
+### Politica administrativa
 
-La política `AdminOnly` exige el rol `Administrator` y protege toda el área `/Admin`.
+La politica `AdminOnly` exige el rol `Administrator` y protege toda el area `/Admin`.
 
-## Asignar manualmente Administrator
+### Asignar manualmente Administrator
 
-La aplicación no contiene credenciales administrativas ni contraseñas predeterminadas.
+La aplicacion no contiene credenciales administrativas ni contrasenas predeterminadas.
 
 1. Registrar normalmente la cuenta en:
 
-```text
-/Identity/Account/Register
-```
+   ```text
+   /Identity/Account/Register
+   ```
 
-2. Detener la aplicación.
-
+2. Detener la aplicacion.
 3. Configurar temporalmente el correo de una cuenta existente mediante User Secrets:
 
-```bash
-dotnet user-secrets set \
-  "BootstrapAdmin:Email" \
-  "usuario@ejemplo.com" \
-  --project Voyago/Voyago.csproj
-```
+   ```bash
+   dotnet user-secrets set \
+     "BootstrapAdmin:Email" \
+     "usuario@ejemplo.com" \
+     --project Voyago/Voyago.csproj
+   ```
 
-4. Iniciar la aplicación una vez:
+4. Iniciar la aplicacion una vez:
 
-```bash
-dotnet run --project Voyago/Voyago.csproj
-```
+   ```bash
+   dotnet run --project Voyago/Voyago.csproj
+   ```
 
-5. Eliminar la configuración temporal:
+5. Eliminar la configuracion temporal:
 
-```bash
-dotnet user-secrets remove \
-  "BootstrapAdmin:Email" \
-  --project Voyago/Voyago.csproj
-```
+   ```bash
+   dotnet user-secrets remove \
+     "BootstrapAdmin:Email" \
+     --project Voyago/Voyago.csproj
+   ```
 
-6. Cerrar e iniciar sesión para renovar la cookie de autenticación.
+6. Cerrar e iniciar sesion para renovar la cookie de autenticacion.
 
-> Eliminar `BootstrapAdmin:Email` impide futuras promociones automáticas, pero no revoca el rol ya persistido en `AspNetUserRoles`.
+Eliminar `BootstrapAdmin:Email` impide futuras promociones automaticas, pero no revoca el rol ya persistido en `AspNetUserRoles`.
 
 ### Revocar Administrator
 
-La revocación debe eliminar únicamente la asociación del usuario con el rol. No debe eliminarse la definición del rol `Administrator`.
+La revocacion debe eliminar unicamente la asociacion del usuario con el rol. No debe eliminarse la definicion del rol `Administrator`.
 
 Ejemplo para mantenimiento local controlado:
 
@@ -305,11 +319,11 @@ AND RoleId = (
 );
 ```
 
-Realizar un respaldo de la base y detener la aplicación antes de modificar SQLite manualmente.
+Realizar un respaldo de la base y detener la aplicacion antes de modificar SQLite manualmente.
 
 ## Modelo de dominio
 
-### Catálogo
+### Catalogo
 
 - `Destination`.
 - `TourPackage`.
@@ -319,13 +333,13 @@ Realizar un respaldo de la base y detener la aplicación antes de modificar SQLi
 - `HotelRoomType`.
 - `FlightOffer`.
 
-### Operación preparada
+### Operacion preparada
 
 - `Booking`.
 - `Review`.
 - `Favorite`.
 
-La presencia de estas entidades no implica que los flujos de reserva, reseñas o favoritos estén disponibles en la interfaz.
+`Favorite` ya participa en el flujo autenticado del detalle de destinos. Los flujos de reservas y publicacion de resenas todavia no estan disponibles en la interfaz.
 
 ### Enums
 
@@ -335,59 +349,57 @@ La presencia de estas entidades no implica que los flujos de reserva, reseñas o
 - `BookingStatus`.
 - `ReviewModerationStatus`.
 
-## Relaciones y eliminación
+## Relaciones y eliminacion
 
-Se utilizan eliminaciones restringidas para proteger información operacional:
+Se utilizan eliminaciones restringidas para proteger informacion operacional:
 
 - Destino a paquetes.
 - Destino a hoteles.
 - Usuario a reservas.
-- Usuario a reseñas.
-- Destino a reseñas.
-- Paquete a reseñas.
+- Usuario a resenas.
+- Destino a resenas.
+- Paquete a resenas.
 - Destino a favoritos.
 
 Las cascadas se limitan a dependencias internas:
 
-- Paquete a días de itinerario.
+- Paquete a dias de itinerario.
 - Paquete a inclusiones.
-- Hotel a tipos de habitación.
+- Hotel a tipos de habitacion.
 - Usuario a favoritos.
 
-`Booking.ProductId` no es una clave foránea directa porque la entidad de producto depende de `BookingProductType`. La existencia y el precio del producto deberán validarse en la capa de aplicación cuando se implemente el flujo de reserva.
+`Booking.ProductId` no es una clave foranea directa porque la entidad de producto depende de `BookingProductType`. La existencia y el precio del producto deberan validarse en la capa de aplicacion cuando se implemente el flujo de reserva.
 
-## Índices principales
+## Indices principales
 
-- Índice único de `Booking.BookingReference`.
-- Índice único compuesto de `Favorite.UserId + DestinationId`.
-- Índice único de `PackageItineraryDay.TourPackageId + DayNumber`.
-- Índices para publicación y destacados.
-- Índices para destino, región, rutas, estados y fechas de consulta frecuente.
+- Indice unico de `Booking.BookingReference`.
+- Indice unico compuesto de `Favorite.UserId + DestinationId`.
+- Indice unico de `PackageItineraryDay.TourPackageId + DayNumber`.
+- Indices para publicacion y destacados.
+- Indices para destino, region, rutas, estados y fechas de consulta frecuente.
 
 ## Importes y fechas
 
-Los importes se modelan como `decimal` y se configuran con precisión conceptual `18,2` cuando corresponde.
+Los importes se modelan como `decimal` y se configuran con precision conceptual `18,2` cuando corresponde.
 
-SQLite conserva estos valores utilizando el tipo de almacenamiento determinado por el proveedor EF Core. Las operaciones futuras de ordenamiento, agregación y rangos sobre importes deben mantenerse cubiertas por pruebas.
+SQLite conserva estos valores utilizando el tipo de almacenamiento determinado por el proveedor EF Core. Las operaciones futuras de ordenamiento, agregacion y rangos sobre importes deben mantenerse cubiertas por pruebas.
 
-Las propiedades de auditoría utilizan nombres terminados en `Utc`. El código que cree o modifique reservas deberá proporcionar valores UTC.
+Las propiedades de auditoria utilizan nombres terminados en `Utc`. El codigo que cree o modifique reservas debera proporcionar valores UTC.
 
 ## Datos demostrativos
 
-El seed se ejecuta únicamente cuando el ambiente es `Development` y presupone que las migraciones ya fueron aplicadas.
+El seed demostrativo es idempotente y se utiliza en desarrollo y en las bases aisladas de pruebas.
 
-Contenido esperado:
-
-| Entidad | Cantidad |
+| Entidad | Cantidad esperada |
 |---|---:|
 | Destinos | 8 |
 | Paquetes | 10 |
-| Días de itinerario | 30 |
+| Dias de itinerario | 30 |
 | Inclusiones y exclusiones | 30 |
 | Hoteles | 8 |
-| Tipos de habitación | 16 |
+| Tipos de habitacion | 16 |
 | Vuelos | 8 |
-| Reseñas aprobadas | 10 |
+| Resenas aprobadas | 10 |
 
 Destinos incluidos:
 
@@ -400,9 +412,9 @@ Destinos incluidos:
 - Santorini.
 - Maldivas.
 
-### Usuario técnico del seed
+### Usuario tecnico del seed
 
-Las reseñas demostrativas se asocian a:
+Las resenas demostrativas se asocian a:
 
 ```text
 demo-reviewer@voyago.local
@@ -410,18 +422,18 @@ demo-reviewer@voyago.local
 
 Esta cuenta:
 
-- no posee contraseña;
-- no recibe el rol `Administrator`;
-- no representa una cuenta real;
-- existe únicamente para conservar integridad referencial.
+- No posee contrasena.
+- No recibe el rol `Administrator`.
+- No representa una cuenta real.
+- Existe unicamente para conservar integridad referencial.
 
 ### Idempotencia
 
-El seeder usa identificadores deterministas y agrega solamente registros ausentes. Ejecutar la aplicación nuevamente no debe duplicar el contenido demostrativo.
+El seeder usa identificadores deterministas y agrega solamente registros ausentes. Ejecutar el seed nuevamente no debe duplicar el contenido demostrativo.
 
 ## Servicios de consulta
 
-Se encuentran registrados mediante inyección de dependencias:
+Se encuentran registrados mediante inyeccion de dependencias:
 
 - `IDestinationQueryService`.
 - `IPackageQueryService`.
@@ -431,65 +443,196 @@ Se encuentran registrados mediante inyección de dependencias:
 
 Los servicios:
 
-- utilizan `AsNoTracking`;
-- retornan DTOs;
-- retornan `PagedResult<T>`;
-- materializan internamente las consultas;
-- no exponen `IQueryable`;
-- propagan `CancellationToken`;
-- limitan el tamaño máximo de página;
-- excluyen catálogos no publicados;
-- excluyen reseñas no aprobadas.
+- Utilizan `AsNoTracking`.
+- Retornan DTOs.
+- Retornan `PagedResult<T>`.
+- Materializan internamente las consultas.
+- No exponen `IQueryable`.
+- Propagan `CancellationToken`.
+- Limitan el tamano maximo de pagina.
+- Excluyen catalogos no publicados.
+- Excluyen resenas no aprobadas.
+
+## Catalogo publico y favoritos
+
+La Jornada 3 incorporo:
+
+- Inicio con contenido real persistido.
+- Catalogo publico de destinos.
+- Busqueda sin distincion entre mayusculas y minusculas.
+- Filtros combinables y paginacion.
+- Detalle de destinos publicados.
+- Paquetes y hoteles relacionados.
+- Vista cartografica referencial.
+- Recursos locales con fallback.
+- Respuestas 404 para destinos inexistentes.
+- Enlace de login con conservacion de `returnUrl`.
+- Agregar y eliminar destinos favoritos.
+- Persistencia del favorito despues de recargar la pagina.
+- Validacion antiforgery en operaciones mutables.
+
+## Ambientes de ejecucion y pruebas
+
+### Development
+
+- Utiliza la base local configurada en `appsettings.json`.
+- Inicializa roles.
+- Ejecuta el seed demostrativo.
+- No crea el usuario E2E.
+
+### IntegrationTesting
+
+Utilizado exclusivamente por `WebApplicationFactory<Program>`.
+
+- Crea una base SQLite temporal `voyago-tests-<guid>.db`.
+- Aplica migraciones.
+- Inicializa roles.
+- Ejecuta el seed demostrativo.
+- No crea el usuario Playwright.
+- Elimina los archivos temporales al finalizar.
+
+### Testing
+
+Utilizado exclusivamente por el servidor externo de Playwright.
+
+- Crea una base SQLite temporal en `.e2e-data/`.
+- Aplica migraciones.
+- Inicializa roles.
+- Ejecuta el seed demostrativo.
+- Crea un usuario `Traveler` determinista.
+- Limpia los favoritos del usuario antes de comenzar.
+- Elimina la base temporal al finalizar.
 
 ## Pruebas automatizadas
 
-Ejecutar:
+### Voyago.Tests
+
+El proyecto `tests/Voyago.Tests` utiliza xUnit y cubre:
+
+- Creacion de los datos demostrativos requeridos.
+- Idempotencia del seed.
+- Servicios de consulta del catalogo.
+- Exclusiones por publicacion y moderacion.
+- Paginacion y filtros.
+- Busqueda case-insensitive de Patagonia.
+- PageModels de Home y destinos.
+- Restricciones y relaciones SQLite.
+- Unicidad de `BookingReference`.
+- Unicidad de favoritos por usuario y destino.
+- Rutas publicas mediante `WebApplicationFactory`.
+- Recursos estaticos.
+- Respuestas 404.
+- Redirecciones de autenticacion y `returnUrl`.
+- Rechazo de solicitudes sin antiforgery.
+
+Ejecucion:
 
 ```bash
-dotnet test Voyago.sln --no-build
+dotnet test \
+  tests/Voyago.Tests/Voyago.Tests.csproj \
+  --logger "console;verbosity=detailed"
 ```
 
-Salida validada al cierre de Jornada 2:
+Resultado validado al cierre de la Jornada 3:
+
+```text
+Pruebas totales: 37
+Correcto: 37
+Incorrecto: 0
+Omitido: 0
+```
+
+### Voyago.E2E
+
+El proyecto `tests/Voyago.E2E` utiliza NUnit, Playwright y Chromium.
+
+Escenarios automatizados:
+
+- `Home_LoadsRealContent`.
+- `Search_Patagonia_OpensDestination`.
+- `Patagonia_Detail_ShowsRelatedContent`.
+- `AnonymousLogin_PreservesDestinationReturnUrl`.
+- `DestinationPage_HasNoFailedLocalResources`.
+- `InvalidDestination_Returns404`.
+- `AuthenticatedUser_CanAddPersistAndRemoveFavorite`.
+
+La prueba autenticada valida:
+
+1. Apertura de Patagonia.
+2. Navegacion al login.
+3. Conservacion de `returnUrl`.
+4. Login real con ASP.NET Core Identity.
+5. Agregar el destino a favoritos.
+6. Persistencia despues de recargar.
+7. Eliminacion del favorito.
+8. Verificacion del estado final.
+
+### Instalar Chromium para Playwright
+
+Despues de compilar `Voyago.E2E`, ejecutar desde PowerShell:
+
+```powershell
+./tests/Voyago.E2E/bin/Debug/net8.0/playwright.ps1 install chromium
+```
+
+En un agente Linux o contenedor puede utilizarse:
+
+```powershell
+./tests/Voyago.E2E/bin/Debug/net8.0/playwright.ps1 install chromium --with-deps
+```
+
+### Regresion E2E automatizada
+
+Desde Git Bash:
+
+```bash
+./scripts/test-e2e.sh
+```
+
+El script realiza automaticamente:
+
+1. Generacion de un GUID.
+2. Creacion de SQLite temporal.
+3. Configuracion del ambiente `Testing`.
+4. Configuracion del usuario E2E.
+5. Restauracion y compilacion.
+6. Inicio de Voyago en `http://localhost:65138`.
+7. Espera del health check.
+8. Ejecucion de las siete pruebas Playwright.
+9. Detencion del servidor.
+10. Eliminacion de SQLite.
+11. Conservacion del log cuando ocurre un error.
+
+Resultado validado:
 
 ```text
 Pruebas totales: 7
 Correcto: 7
-Errores: 0
+Incorrecto: 0
 Omitido: 0
 ```
 
-Las pruebas cubren:
+### Resultado consolidado
 
-1. Creación de los datos demostrativos requeridos.
-2. Idempotencia del seed.
-3. Retorno de datos desde todos los servicios del catálogo.
-4. Exclusión de destinos no publicados y paginación.
-5. Exclusión de reseñas no aprobadas.
-6. Unicidad de `BookingReference` y round trip de importes y fechas.
-7. Unicidad de favorito por usuario y destino.
-
-Las pruebas emplean SQLite en memoria con claves foráneas habilitadas. No leen ni modifican `Voyago/Data/voyago.db`.
-
-### Ejecución detallada
-
-```bash
-dotnet test Voyago.sln \
-  --no-build \
-  --logger "console;verbosity=detailed"
+```text
+Voyago.Tests: 37 de 37
+Voyago.E2E:     7 de 7
+Total:         44 de 44
 ```
 
 ### Cobertura
 
 ```bash
-dotnet test Voyago.sln \
+dotnet test \
+  tests/Voyago.Tests/Voyago.Tests.csproj \
   --collect:"XPlat Code Coverage"
 ```
 
-## Verificación manual de SQLite
+## Verificacion manual de SQLite
 
 Puede utilizarse **SQLite and SQL Server Compact Toolbox** en Visual Studio 2022 o la herramienta `sqlite3`.
 
-Abrir:
+Abrir la base local:
 
 ```bash
 sqlite3 Voyago/Data/voyago.db
@@ -537,13 +680,22 @@ FROM __EFMigrationsHistory
 ORDER BY MigrationId;
 ```
 
-## Secuencia completa de validación
+## Secuencia completa de validacion
 
 ```bash
 dotnet clean Voyago.sln
+
 dotnet restore Voyago.sln
-dotnet build Voyago.sln --no-restore
-dotnet test Voyago.sln --no-build
+
+dotnet build Voyago.sln \
+  --no-restore
+
+dotnet test \
+  tests/Voyago.Tests/Voyago.Tests.csproj \
+  --no-build \
+  --logger "console;verbosity=detailed"
+
+./scripts/test-e2e.sh
 
 dotnet ef migrations has-pending-model-changes \
   --project Voyago/Voyago.csproj \
@@ -554,39 +706,52 @@ dotnet ef migrations list \
   --startup-project Voyago/Voyago.csproj
 ```
 
+Cada vez que se ejecute `dotnet clean`, debe ejecutarse posteriormente `dotnet build` antes de utilizar `dotnet test --no-build`.
+
 ## Seguridad y secretos
 
-- No se almacenan contraseñas administrativas en el repositorio.
+- No se almacenan contrasenas administrativas en el repositorio.
 - No se almacenan datos de tarjetas.
 - No se implementan pagos reales.
 - No existen API keys de Google, IA o Workspace.
-- User Secrets se utiliza para configuración local sensible o temporal.
-- Los archivos SQLite no se versionan.
-- El área administrativa está protegida por política.
+- User Secrets se utiliza para configuracion local sensible o temporal.
+- Las bases SQLite locales y temporales no se versionan.
+- Los archivos de estado autenticado de Playwright no se versionan.
+- El area administrativa esta protegida por politica.
+- El usuario E2E existe solo dentro de una base temporal de pruebas.
+- Las credenciales E2E pueden sobrescribirse mediante variables de entorno.
 
-## Funcionalidades aún no implementadas
+Variables utilizadas por la regresion E2E:
 
-- Páginas completas de destinos.
-- Páginas completas de paquetes.
-- Páginas completas de hoteles.
-- Páginas completas de vuelos.
+```text
+VOYAGO_E2E_BASE_URL
+VOYAGO_E2E_EMAIL
+VOYAGO_E2E_PASSWORD
+```
+
+## Funcionalidades aun no implementadas
+
+- Paginas completas de paquetes.
+- Paginas completas de hoteles.
+- Paginas completas de vuelos.
 - Flujo de reserva.
 - Perfil VIP.
-- Favoritos desde la interfaz.
-- Publicación de reseñas desde la interfaz.
-- CRUD administrativo.
-- Google Maps.
+- Publicacion de resenas desde la interfaz.
+- CRUD administrativo completo.
+- Integracion real con Google Maps.
 - Concierge y planificador de IA.
 - Google Workspace.
 - Dashboard operacional.
 - Pagos.
+- Pipeline CI/CD.
+- Publicacion automatica de resultados TRX y evidencias Playwright.
 
 ## Flujo Git recomendado
 
-La implementación de Jornada 2 se desarrolló en:
+La Jornada 3 se desarrollo en:
 
 ```text
-feature/jornada-2-domain-model
+feature/jornada-3-public-catalog
 ```
 
 Verificar el estado:
@@ -596,10 +761,26 @@ git status
 git log --oneline --decorate -10
 ```
 
+Preparar los cambios:
+
+```bash
+git add -A
+git diff --cached --stat
+git diff --cached --check
+```
+
+Crear el commit de cierre:
+
+```bash
+git commit \
+  -m "feat: cerrar jornada 3 con regresion automatizada" \
+  -m "Incorpora catalogo publico, pruebas HTTP, Playwright, favoritos autenticados, SQLite temporal y documentacion. CI/CD queda pendiente para la siguiente jornada."
+```
+
 Publicar la rama:
 
 ```bash
-git push -u origin feature/jornada-2-domain-model
+git push -u origin feature/jornada-3-public-catalog
 ```
 
 No deben versionarse:
@@ -611,18 +792,43 @@ obj/
 Voyago/Data/voyago.db
 Voyago/Data/voyago.db-shm
 Voyago/Data/voyago.db-wal
-Voyago-Jornada2-Overlay/
-Voyago-Jornada2-Tests-Overlay/
+.e2e-data/
+TestResults/
+playwright/.auth/
 ```
 
-## Documentación
+## Documentacion
 
 La SDD maestra es la fuente principal de requisitos y decisiones del producto. El archivo `docs/SDD.md` referencia el documento maestro entregado al proyecto.
 
-Cualquier cambio de arquitectura, integraciones, persistencia, autenticación o alcance debe contrastarse primero con la SDD.
+El cierre tecnico de la Jornada 3 debe registrarse en:
+
+```text
+docs/jornada-3-cierre-tecnico.md
+```
+
+Cualquier cambio de arquitectura, integraciones, persistencia, autenticacion o alcance debe contrastarse primero con la SDD.
+
+## Pendiente para la jornada siguiente
+
+El siguiente incremento corresponde a incorporar la regresion automatizada al pipeline CI/CD:
+
+- Compilar la solucion.
+- Ejecutar las 37 pruebas de `Voyago.Tests`.
+- Instalar Chromium en el agente.
+- Ejecutar las 7 pruebas de `Voyago.E2E`.
+- Publicar resultados TRX.
+- Conservar logs, capturas o trazas ante fallos.
+- Configurar validaciones obligatorias para pull requests.
 
 ## Estado de cierre
 
-La Jornada 2 se considera completada y validada al 29 de agosto de 2026.
+La Jornada 3 se considera completada y validada al **30 de agosto de 2026**.
 
-El siguiente incremento corresponde a definir y ejecutar la Jornada 3 sin adelantar funcionalidades no autorizadas.
+```text
+Voyago.Tests: 37 de 37 aprobadas
+Voyago.E2E:     7 de 7 aprobadas
+Total:         44 de 44 aprobadas
+```
+
+El codigo y la documentacion quedan preparados para su publicacion en GitHub. El pipeline CI/CD se implementara en la jornada siguiente.

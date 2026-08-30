@@ -1,0 +1,151 @@
+@page "/Destinations/{id:int}"
+@model Voyago.Pages.Destinations.DetailsModel
+@using System.Globalization
+@{
+    ViewData["Title"] = Model.Destination.Name;
+    ViewData["MetaDescription"] = $"Descubre {Model.Destination.Name}, {Model.Destination.Country}: {Model.Destination.Tagline}";
+    var currentUrl = Request.Path + Request.QueryString;
+    var currency = CultureInfo.GetCultureInfo("en-US");
+}
+
+<article>
+    <header class="container py-5">
+        <nav aria-label="Migas de pan" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a asp-page="/Index">Inicio</a></li>
+                <li class="breadcrumb-item"><a asp-page="/Destinations/Index">Destinos</a></li>
+                <li class="breadcrumb-item active" aria-current="page">@Model.Destination.Name</li>
+            </ol>
+        </nav>
+
+        @if (!string.IsNullOrWhiteSpace(Model.StatusMessage))
+        {
+            <div class="alert alert-success" role="status">@Model.StatusMessage</div>
+        }
+
+        <div class="row g-5 align-items-center">
+            <div class="col-12 col-lg-7">
+                <p class="vy-eyebrow">@Model.Destination.Category</p>
+                <h1 class="display-3">@Model.Destination.Name</h1>
+                <p class="lead">@Model.Destination.Tagline</p>
+                <p class="text-secondary-emphasis">@Model.Destination.Country · @Model.Destination.Region</p>
+                <div class="d-flex flex-wrap gap-2 mt-4">
+                    <a class="btn btn-primary" href="#concierge-destination">Diseñar mi viaje</a>
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <form method="post">
+                            <input type="hidden" name="id" value="@Model.Destination.Id" />
+                            <input type="hidden" name="returnUrl" value="@currentUrl" />
+                            @if (Model.IsFavorite)
+                            {
+                                <button class="btn btn-outline-primary" type="submit" asp-page-handler="RemoveFavorite">Quitar de favoritos</button>
+                            }
+                            else
+                            {
+                                <button class="btn btn-outline-primary" type="submit" asp-page-handler="AddFavorite">Guardar en favoritos</button>
+                            }
+                        </form>
+                    }
+                    else
+                    {
+                        <a class="btn btn-outline-primary"
+                           asp-area="Identity"
+                           asp-page="/Account/Login"
+                           asp-route-returnUrl="@currentUrl">Inicia sesión para guardar</a>
+                    }
+                </div>
+            </div>
+            <div class="col-12 col-lg-5">
+                <img class="w-100 rounded vy-detail-image"
+                     src="@Model.Destination.ImageUrl"
+                     alt="Vista representativa de @Model.Destination.Name"
+                     width="720"
+                     height="540"
+                     data-fallback-src="/images/placeholders/destination.svg" />
+            </div>
+        </div>
+    </header>
+
+    <section class="container py-5" aria-labelledby="destination-overview">
+        <div class="row g-5">
+            <div class="col-12 col-lg-8">
+                <h2 id="destination-overview">La experiencia</h2>
+                <p class="fs-5">@Model.Destination.Description</p>
+            </div>
+            <aside class="col-12 col-lg-4">
+                <div class="vy-card p-4">
+                    <h2 class="h4">Información esencial</h2>
+                    <dl class="mb-0">
+                        <dt>Mejor temporada</dt>
+                        <dd>@Model.Destination.BestSeason</dd>
+                        <dt>Duración recomendada</dt>
+                        <dd>@Model.Destination.RecommendedDuration días</dd>
+                        <dt>Coordenadas</dt>
+                        <dd>@Model.Destination.Latitude.ToString("0.0000", CultureInfo.InvariantCulture), @Model.Destination.Longitude.ToString("0.0000", CultureInfo.InvariantCulture)</dd>
+                    </dl>
+                </div>
+            </aside>
+        </div>
+    </section>
+
+    <section class="container py-5" aria-labelledby="map-title">
+        <div class="vy-map-placeholder p-4 p-lg-5" role="img" aria-label="Vista cartográfica referencial de @Model.Destination.Name">
+            <div class="vy-map-marker" aria-hidden="true"></div>
+            <div>
+                <p class="vy-eyebrow">Ubicación referencial</p>
+                <h2 id="map-title">@Model.Destination.Name</h2>
+                <p class="mb-0">Vista cartográfica referencial. La integración de mapas estará disponible en una etapa posterior.</p>
+            </div>
+        </div>
+    </section>
+
+    @if (Model.Destination.Packages.Count > 0)
+    {
+        <section class="container py-5" aria-labelledby="related-packages-title">
+            <p class="vy-eyebrow">Experiencias seleccionadas</p>
+            <h2 id="related-packages-title">Paquetes relacionados</h2>
+            <div class="row g-4 mt-1">
+                @foreach (var package in Model.Destination.Packages)
+                {
+                    <article class="col-12 col-md-6">
+                        <div class="vy-card p-4 h-100">
+                            <h3 class="h4">@package.Title</h3>
+                            <p class="text-secondary-emphasis">@package.DurationDays días · @package.TravelStyle</p>
+                            <p>Desde <strong>@package.PricePerPerson.ToString("C0", currency)</strong> por persona</p>
+                            <p class="mb-0">@package.AvailableSlots cupos demostrativos disponibles.</p>
+                        </div>
+                    </article>
+                }
+            </div>
+        </section>
+    }
+
+    @if (Model.Destination.Hotels.Count > 0)
+    {
+        <section class="container py-5" aria-labelledby="related-hotels-title">
+            <p class="vy-eyebrow">Alojamientos</p>
+            <h2 id="related-hotels-title">Hoteles relacionados</h2>
+            <div class="row g-4 mt-1">
+                @foreach (var hotel in Model.Destination.Hotels)
+                {
+                    <article class="col-12 col-md-6">
+                        <div class="vy-card p-4 h-100">
+                            <h3 class="h4">@hotel.Name</h3>
+                            <p class="text-secondary-emphasis">@hotel.Stars estrellas · Calificación @hotel.Rating.ToString("0.0", CultureInfo.InvariantCulture)</p>
+                            <p class="mb-0">Desde <strong>@hotel.PricePerNight.ToString("C0", currency)</strong> por noche</p>
+                        </div>
+                    </article>
+                }
+            </div>
+        </section>
+    }
+
+    <section id="concierge-destination" class="container py-5" aria-labelledby="concierge-destination-title">
+        <div class="vy-card p-4 p-lg-5 text-center">
+            <p class="vy-eyebrow">Concierge Voyago</p>
+            <h2 id="concierge-destination-title">Diseñaremos cada detalle contigo</h2>
+            <p class="text-secondary-emphasis">El planificador personalizado estará disponible en una etapa posterior. Por ahora, continúa explorando nuestra colección.</p>
+            <a class="btn btn-primary" asp-page="/Destinations/Index">Explorar otros destinos</a>
+        </div>
+    </section>
+</article>

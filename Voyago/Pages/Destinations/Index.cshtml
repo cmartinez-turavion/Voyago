@@ -1,0 +1,190 @@
+@page
+@model Voyago.Pages.Destinations.IndexModel
+@{
+    ViewData["Title"] = "Destinos";
+    ViewData["MetaDescription"] = "Explora destinos exclusivos de Voyago por región, categoría y mejor temporada para viajar.";
+    var currentUrl = Request.Path + Request.QueryString;
+}
+
+<section class="container py-5" aria-labelledby="destinations-title">
+    <header class="mb-5">
+        <p class="vy-eyebrow mb-2">Colección Voyago</p>
+        <h1 id="destinations-title" class="display-4">Destinos extraordinarios</h1>
+        <p class="lead text-secondary-emphasis col-lg-8">Encuentra el escenario ideal para una experiencia privada diseñada a tu medida.</p>
+    </header>
+
+    @if (!string.IsNullOrWhiteSpace(Model.StatusMessage))
+    {
+        <div class="alert alert-success" role="status">@Model.StatusMessage</div>
+    }
+
+    <form method="get" class="vy-card p-4 mb-5" aria-label="Filtros de destinos">
+        <div class="row g-3 align-items-end">
+            <div class="col-12 col-lg-4">
+                <label asp-for="Search" class="form-label">Buscar</label>
+                <input asp-for="Search" class="form-control" placeholder="Nombre, país o región" />
+            </div>
+            <div class="col-12 col-md-4 col-lg-2">
+                <label asp-for="Region" class="form-label">Región</label>
+                <select asp-for="Region" class="form-select">
+                    <option value="">Todas</option>
+                    @foreach (var option in Model.ViewModel.FilterOptions.Regions)
+                    {
+                        <option value="@option">@option</option>
+                    }
+                </select>
+            </div>
+            <div class="col-12 col-md-4 col-lg-2">
+                <label asp-for="Category" class="form-label">Categoría</label>
+                <select asp-for="Category" class="form-select">
+                    <option value="">Todas</option>
+                    @foreach (var option in Model.ViewModel.FilterOptions.Categories)
+                    {
+                        <option value="@option">@option</option>
+                    }
+                </select>
+            </div>
+            <div class="col-12 col-md-4 col-lg-2">
+                <label asp-for="BestSeason" class="form-label">Temporada</label>
+                <select asp-for="BestSeason" class="form-select">
+                    <option value="">Todas</option>
+                    @foreach (var option in Model.ViewModel.FilterOptions.BestSeasons)
+                    {
+                        <option value="@option">@option</option>
+                    }
+                </select>
+            </div>
+            <div class="col-12 col-lg-2 d-grid gap-2">
+                <button class="btn btn-primary" type="submit">Aplicar filtros</button>
+                <a class="btn btn-outline-primary" asp-page="/Destinations/Index">Limpiar</a>
+            </div>
+        </div>
+    </form>
+
+    @if (Model.ViewModel.Results.Items.Count == 0)
+    {
+        <div class="vy-card p-5 text-center" role="status">
+            <p class="vy-eyebrow">Sin resultados</p>
+            <h2 class="h3">No encontramos destinos con esos criterios</h2>
+            <p class="text-secondary-emphasis">Prueba con otra región, categoría o temporada.</p>
+            <a class="btn btn-primary" asp-page="/Destinations/Index">Ver todos los destinos</a>
+        </div>
+    }
+    else
+    {
+        <p class="text-secondary-emphasis mb-4">
+            @Model.ViewModel.Results.TotalItems destino@(Model.ViewModel.Results.TotalItems == 1 ? "" : "s") encontrado@(Model.ViewModel.Results.TotalItems == 1 ? "" : "s").
+        </p>
+
+        <div class="row g-4">
+            @foreach (var destination in Model.ViewModel.Results.Items)
+            {
+                var isFavorite = Model.ViewModel.FavoriteDestinationIds.Contains(destination.Id);
+                <article class="col-12 col-md-6 col-xl-4">
+                    <div class="vy-card h-100 overflow-hidden">
+                        <img class="w-100 vy-catalog-image"
+                             src="@destination.ImageUrl"
+                             alt="Vista representativa de @destination.Name"
+                             loading="lazy"
+                             width="640"
+                             height="420"
+                             data-fallback-src="/images/placeholders/destination.svg" />
+                        <div class="p-4 d-flex flex-column h-100">
+                            <div class="d-flex justify-content-between gap-3 align-items-start">
+                                <div>
+                                    <p class="vy-eyebrow mb-1">@destination.Category</p>
+                                    <h2 class="h3 mb-1">@destination.Name</h2>
+                                    <p class="text-secondary-emphasis">@destination.Country · @destination.Region</p>
+                                </div>
+                                @if (destination.Featured)
+                                {
+                                    <span class="badge text-bg-warning">Destacado</span>
+                                }
+                            </div>
+                            <p>@destination.Tagline</p>
+                            <ul class="list-unstyled text-secondary-emphasis small mb-4">
+                                <li>Mejor temporada: @destination.BestSeason</li>
+                                <li>Duración sugerida: @destination.RecommendedDuration días</li>
+                            </ul>
+                            <div class="mt-auto d-flex flex-wrap gap-2">
+                                <a class="btn btn-primary flex-grow-1"
+                                   asp-page="/Destinations/Details"
+                                   asp-route-id="@destination.Id">Ver destino</a>
+                                @if (User.Identity?.IsAuthenticated == true)
+                                {
+                                    <form method="post" class="d-inline">
+                                        <input type="hidden" name="destinationId" value="@destination.Id" />
+                                        <input type="hidden" name="returnUrl" value="@currentUrl" />
+                                        @if (isFavorite)
+                                        {
+                                            <button class="btn btn-outline-primary"
+                                                    type="submit"
+                                                    asp-page-handler="RemoveFavorite"
+                                                    aria-label="Quitar @destination.Name de favoritos">Guardado</button>
+                                        }
+                                        else
+                                        {
+                                            <button class="btn btn-outline-primary"
+                                                    type="submit"
+                                                    asp-page-handler="AddFavorite"
+                                                    aria-label="Agregar @destination.Name a favoritos">Guardar</button>
+                                        }
+                                    </form>
+                                }
+                                else
+                                {
+                                    <a class="btn btn-outline-primary"
+                                       asp-area="Identity"
+                                       asp-page="/Account/Login"
+                                       asp-route-returnUrl="@currentUrl">Guardar</a>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </article>
+            }
+        </div>
+
+        @if (Model.ViewModel.Results.TotalPages > 1)
+        {
+            <nav class="mt-5" aria-label="Paginación de destinos">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item @(!Model.ViewModel.Results.HasPreviousPage ? "disabled" : null)">
+                        <a class="page-link"
+                           asp-page="/Destinations/Index"
+                           asp-route-Search="@Model.Search"
+                           asp-route-Region="@Model.Region"
+                           asp-route-Category="@Model.Category"
+                           asp-route-BestSeason="@Model.BestSeason"
+                           asp-route-PageNumber="@(Model.ViewModel.Results.PageNumber - 1)"
+                           aria-disabled="@(!Model.ViewModel.Results.HasPreviousPage)">Anterior</a>
+                    </li>
+                    @for (var pageNumber = 1; pageNumber <= Model.ViewModel.Results.TotalPages; pageNumber++)
+                    {
+                        var isCurrentPage = pageNumber == Model.ViewModel.Results.PageNumber;
+                        <li class="page-item @(isCurrentPage ? "active" : null)">
+                            <a class="page-link"
+                               asp-page="/Destinations/Index"
+                               asp-route-Search="@Model.Search"
+                               asp-route-Region="@Model.Region"
+                               asp-route-Category="@Model.Category"
+                               asp-route-BestSeason="@Model.BestSeason"
+                               asp-route-PageNumber="@pageNumber"
+                               aria-current="@(isCurrentPage ? "page" : null)">@pageNumber</a>
+                        </li>
+                    }
+                    <li class="page-item @(!Model.ViewModel.Results.HasNextPage ? "disabled" : null)">
+                        <a class="page-link"
+                           asp-page="/Destinations/Index"
+                           asp-route-Search="@Model.Search"
+                           asp-route-Region="@Model.Region"
+                           asp-route-Category="@Model.Category"
+                           asp-route-BestSeason="@Model.BestSeason"
+                           asp-route-PageNumber="@(Model.ViewModel.Results.PageNumber + 1)"
+                           aria-disabled="@(!Model.ViewModel.Results.HasNextPage)">Siguiente</a>
+                    </li>
+                </ul>
+            </nav>
+        }
+    }
+</section>

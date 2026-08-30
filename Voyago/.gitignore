@@ -8,3 +8,10 @@ Data/*.db-wal
 *.user
 *.suo
 appsettings.Local.json
+# Voyago E2E
+.e2e-data/
+playwright/.auth/
+TestResults/
+**/playwright-report/
+**/playwright**races/
+

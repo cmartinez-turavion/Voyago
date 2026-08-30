@@ -1,20 +1,174 @@
 @page
 @model IndexModel
+@using System.Globalization
 @{
-    ViewData["Title"] = "Inicio";
+    ViewData["Title"] = "Viajes de lujo diseñados a tu medida";
+    ViewData["MetaDescription"] = "Descubre destinos exclusivos, experiencias privadas y atención concierge con Voyago.";
+    var currency = CultureInfo.GetCultureInfo("en-US");
 }
-<section class="vy-hero py-5" aria-labelledby="hero-title">
-    <div class="container py-5">
-        <p class="vy-eyebrow mb-3">Luxury Travel &amp; VIP Concierge</p>
-        <h1 id="hero-title" class="display-3 mb-4">Viajes extraordinarios, diseñados a tu medida.</h1>
-        <p class="lead text-secondary-emphasis col-lg-7 mb-4">Voyago será tu plataforma para descubrir experiencias exclusivas y planificar cada detalle con atención personalizada.</p>
-        <a class="btn btn-primary btn-lg" asp-page="/Index">Comenzar a explorar</a>
+
+<section class="vy-home-hero" aria-labelledby="home-hero-title">
+    <div class="container vy-home-hero__content">
+        <div class="col-xl-8">
+            <p class="vy-eyebrow mb-3">Luxury Travel &amp; VIP Concierge</p>
+            <h1 id="home-hero-title" class="display-2 mb-4">Viajes extraordinarios, diseñados a tu medida.</h1>
+            <p class="lead col-lg-9 mb-4">Explora una colección seleccionada de destinos y experiencias privadas con el estándar de atención Voyago.</p>
+            <div class="d-flex flex-wrap gap-3">
+                <a class="btn btn-primary btn-lg" asp-page="/Destinations/Index">Explorar destinos</a>
+                <a class="btn btn-outline-primary btn-lg" href="#concierge">Conocer el concierge</a>
+            </div>
+        </div>
     </div>
 </section>
-<section class="container py-5" aria-labelledby="foundation-title">
-    <div class="vy-card p-4 p-lg-5">
-        <p class="vy-eyebrow">Fundación técnica</p>
-        <h2 id="foundation-title" class="h1">La experiencia Voyago comienza aquí</h2>
-        <p class="mb-0 text-secondary-emphasis">La plataforma base está preparada con identidad, autorización y una interfaz adaptable.</p>
+
+<section class="container vy-section" aria-labelledby="quick-search-title">
+    <div class="vy-card p-4 p-lg-5 vy-search-panel">
+        <div>
+            <p class="vy-eyebrow mb-2">Comienza tu recorrido</p>
+            <h2 id="quick-search-title" class="h1 mb-3">¿Qué lugar quieres descubrir?</h2>
+            <p class="text-secondary-emphasis mb-0">Busca por nombre, país o región.</p>
+        </div>
+        <form method="get" asp-page="/Destinations/Index" class="vy-quick-search" role="search">
+            <label class="visually-hidden" for="home-destination-search">Buscar destino</label>
+            <input id="home-destination-search"
+                   class="form-control form-control-lg"
+                   type="search"
+                   name="Search"
+                   placeholder="Ejemplo: Patagonia, Japón, Mediterráneo" />
+            <button class="btn btn-primary btn-lg" type="submit">Buscar</button>
+        </form>
+    </div>
+</section>
+
+<section class="container vy-section" aria-labelledby="featured-destinations-title">
+    <div class="vy-section-heading">
+        <div>
+            <p class="vy-eyebrow mb-2">Colección destacada</p>
+            <h2 id="featured-destinations-title">Destinos que inspiran</h2>
+        </div>
+        <a asp-page="/Destinations/Index">Ver todos los destinos</a>
+    </div>
+
+    @if (Model.ViewModel.FeaturedDestinations.Count == 0)
+    {
+        <div class="vy-empty-state" role="status">Pronto incorporaremos nuevos destinos destacados.</div>
+    }
+    else
+    {
+        <div class="row g-4">
+            @foreach (var destination in Model.ViewModel.FeaturedDestinations)
+            {
+                <article class="col-12 col-sm-6 col-xl-3 vy-reveal">
+                    <a class="vy-media-card" asp-page="/Destinations/Details" asp-route-id="@destination.Id">
+                        <img src="@destination.ImageUrl"
+                             alt="Vista representativa de @destination.Name"
+                             loading="lazy"
+                             width="640"
+                             height="800"
+                             data-fallback-src="/images/placeholders/destination.svg" />
+                        <span class="vy-media-card__overlay" aria-hidden="true"></span>
+                        <span class="vy-media-card__content">
+                            <span class="vy-eyebrow">@destination.Category</span>
+                            <span class="h3">@destination.Name</span>
+                            <span>@destination.Country · @destination.Region</span>
+                        </span>
+                    </a>
+                </article>
+            }
+        </div>
+    }
+</section>
+
+<section class="vy-section vy-section--surface" aria-labelledby="featured-packages-title">
+    <div class="container">
+        <div class="vy-section-heading">
+            <div>
+                <p class="vy-eyebrow mb-2">Voyago Signature</p>
+                <h2 id="featured-packages-title">Experiencias seleccionadas</h2>
+            </div>
+            <span class="text-secondary-emphasis">Diseñadas alrededor de destinos extraordinarios</span>
+        </div>
+
+        <div class="row g-4">
+            @foreach (var package in Model.ViewModel.FeaturedPackages)
+            {
+                <article class="col-12 col-lg-4 vy-reveal">
+                    <div class="vy-card h-100 overflow-hidden">
+                        <img class="vy-catalog-image w-100"
+                             src="@package.ImageUrl"
+                             alt="Vista representativa de @package.Title"
+                             loading="lazy"
+                             width="640"
+                             height="420"
+                             data-fallback-src="/images/placeholders/package.svg" />
+                        <div class="p-4">
+                            <p class="vy-eyebrow mb-2">@package.DestinationName</p>
+                            <h3 class="h4">@package.Title</h3>
+                            <p class="text-secondary-emphasis">@package.DurationDays días · @package.TravelStyle</p>
+                            <p>Desde <strong>@package.PricePerPerson.ToString("C0", currency)</strong> por persona</p>
+                            <a class="btn btn-outline-primary"
+                               asp-page="/Destinations/Details"
+                               asp-route-id="@package.DestinationId">Explorar destino</a>
+                        </div>
+                    </div>
+                </article>
+            }
+        </div>
+    </div>
+</section>
+
+<section id="concierge" class="container vy-section" aria-labelledby="concierge-title">
+    <div class="vy-concierge-panel">
+        <div class="vy-concierge-panel__visual" aria-hidden="true">
+            <span class="vy-concierge-monogram">V</span>
+        </div>
+        <div class="p-4 p-lg-5">
+            <p class="vy-eyebrow mb-2">Concierge Voyago</p>
+            <h2 id="concierge-title" class="display-6">Una experiencia pensada alrededor de ti</h2>
+            <p class="lead text-secondary-emphasis">Nuestro enfoque combina selección editorial, conocimiento del destino y acompañamiento personalizado para convertir una idea de viaje en una experiencia coherente.</p>
+            <div class="d-flex flex-wrap gap-3 align-items-center">
+                <a class="btn btn-primary" asp-page="/Destinations/Index">Comenzar por un destino</a>
+                <span class="vy-coming-soon">Planificador personalizado · Próximamente</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="container vy-section" aria-labelledby="selected-reviews-title">
+    <div class="vy-section-heading">
+        <div>
+            <p class="vy-eyebrow mb-2">Experiencias compartidas</p>
+            <h2 id="selected-reviews-title">Reseñas seleccionadas</h2>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        @foreach (var review in Model.ViewModel.SelectedReviews)
+        {
+            <article class="col-12 col-lg-4 vy-reveal">
+                <figure class="vy-card p-4 h-100 mb-0">
+                    <div class="vy-rating" aria-label="@review.Rating de 5 estrellas">
+                        @for (var starNumber = 1; starNumber <= 5; starNumber++)
+                        {
+                            <span aria-hidden="true">@(starNumber <= review.Rating ? "★" : "☆")</span>
+                        }
+                    </div>
+                    <blockquote class="mt-3 mb-4">
+                        <h3 class="h5">@review.Title</h3>
+                        <p>“@review.Comment”</p>
+                    </blockquote>
+                    <figcaption class="text-secondary-emphasis small">
+                        @if (!string.IsNullOrWhiteSpace(review.DestinationName))
+                        {
+                            <span>@review.DestinationName</span>
+                        }
+                        @if (review.VerifiedBooking)
+                        {
+                            <span class="badge text-bg-success ms-2">Reserva verificada</span>
+                        }
+                    </figcaption>
+                </figure>
+            </article>
+        }
     </div>
 </section>
