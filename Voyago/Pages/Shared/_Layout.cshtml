@@ -3,7 +3,8 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Voyago, plataforma de viajes de lujo y concierge VIP." />
+    <meta name="description" content="@(ViewData["MetaDescription"] ?? "Voyago, plataforma de viajes de lujo y concierge VIP.")" />
+    <meta name="theme-color" content="#1a1915" />
     <title>@ViewData["Title"] | Voyago</title>
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
@@ -21,10 +22,11 @@
                 <div class="collapse navbar-collapse" id="mainNavigation">
                     <ul class="navbar-nav me-auto mb-3 mb-lg-0">
                         <li class="nav-item"><a class="nav-link" asp-area="" asp-page="/Index">Inicio</a></li>
-                        <li class="nav-item"><a class="nav-link disabled" aria-disabled="true">Destinos</a></li>
+                        <li class="nav-item"><a class="nav-link" asp-area="" asp-page="/Destinations/Index">Destinos</a></li>
                         <li class="nav-item"><a class="nav-link disabled" aria-disabled="true">Paquetes</a></li>
                         <li class="nav-item"><a class="nav-link disabled" aria-disabled="true">Hoteles</a></li>
                         <li class="nav-item"><a class="nav-link disabled" aria-disabled="true">Vuelos</a></li>
+                        <li class="nav-item"><a class="nav-link" asp-area="" asp-page="/Index" asp-fragment="concierge">Concierge</a></li>
                         @if (User.IsInRole("Administrator"))
                         {
                             <li class="nav-item"><a class="nav-link" asp-area="Admin" asp-page="/Index">Administración</a></li>
@@ -38,10 +40,34 @@
     <main id="main-content" tabindex="-1">
         @RenderBody()
     </main>
-    <footer class="vy-footer py-4 mt-auto">
-        <div class="container d-flex flex-column flex-md-row justify-content-between gap-2">
-            <span>&copy; @DateTime.UtcNow.Year Voyago</span>
-            <a asp-area="" asp-page="/Privacy">Privacidad</a>
+    <footer class="vy-footer py-5 mt-auto">
+        <div class="container">
+            <div class="row g-4 align-items-start">
+                <div class="col-12 col-lg-6">
+                    <div class="vy-logo mb-2">VOYAGO</div>
+                    <p class="mb-0 col-lg-8">Experiencias de viaje de lujo seleccionadas con atención personalizada.</p>
+                </div>
+                <div class="col-6 col-lg-3">
+                    <h2 class="h6 text-uppercase">Explorar</h2>
+                    <ul class="list-unstyled mb-0">
+                        <li><a asp-area="" asp-page="/Index">Inicio</a></li>
+                        <li><a asp-area="" asp-page="/Destinations/Index">Destinos</a></li>
+                        <li><a asp-area="" asp-page="/Index" asp-fragment="concierge">Concierge</a></li>
+                    </ul>
+                </div>
+                <div class="col-6 col-lg-3">
+                    <h2 class="h6 text-uppercase">Información</h2>
+                    <ul class="list-unstyled mb-0">
+                        <li><a asp-area="" asp-page="/Privacy">Privacidad</a></li>
+                        <li><a href="/api/v1/health">Estado del servicio</a></li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="my-4" />
+            <div class="d-flex flex-column flex-md-row justify-content-between gap-2 small">
+                <span>&copy; @DateTime.UtcNow.Year Voyago</span>
+                <span>Luxury Travel &amp; VIP Concierge</span>
+            </div>
         </div>
     </footer>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
